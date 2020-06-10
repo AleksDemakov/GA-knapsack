@@ -172,7 +172,7 @@ void SolverGA::solve() {
 
     }
 
-    qDebug() << fitnessScoreHistory << "\n\n";
+    //qDebug() << fitnessScoreHistory << "\n\n";
 
 }
 
@@ -180,4 +180,8 @@ QVector<int> SolverGA::getAns() {
     sortPopulation();
     qDebug() << population[0]->fitnessScore() << " ! " << population[0]->weight();
     return population[0]->pocket;
+}
+
+QVector< QVector<int> > SolverGA::getFitnessScoreHistory() {
+    return fitnessScoreHistory;
 }
