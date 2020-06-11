@@ -5,7 +5,7 @@
 class SolverGA
 {
 public:
-    SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate);
+    SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate,int numOfInd);
     void sortPopulation();
     QVector<int> getAns();
     QVector< QVector<int> > getFitnessScoreHistory();

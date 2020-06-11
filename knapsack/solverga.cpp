@@ -81,10 +81,10 @@ class SolverGA::Individual{
             return this->fitnessScore() < other->fitnessScore();
         }
 };
-SolverGA::SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate)
+SolverGA::SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate, int numOfInd)
 {
     //
-    this->numOfInd = 12;
+    this->numOfInd = numOfInd;
     this->n = n;
     this->limit = v;
     this->weights = w;

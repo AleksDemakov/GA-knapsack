@@ -31,9 +31,10 @@ MainWindow::MainWindow(QWidget *parent)
         b.push_back(i.toInt());
     int gen = dataList[3].split(' ')[0].toInt();
     double rate = dataList[3].split(' ')[1].toDouble();
+    int numOfInd = dataList[3].split(' ')[2].toInt();
 //    QVector<int> a = {1,2,3,4,5,6,7,8,9};
 //    QVector<int> b = {10,9,8,7,6,5,4,3,2};
-    SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate);
+    SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate, numOfInd);
 
     QVector<int> res = solver->getAns();
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
