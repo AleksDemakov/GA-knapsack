@@ -23,15 +23,17 @@ MainWindow::MainWindow(QWidget *parent)
     QList<QString> dataList = data.split('\n');
     int limit = dataList[0].split(' ')[0].toInt();
     int num = dataList[0].split(' ')[1].toInt();
+
     QVector<int> a, b;
     for(QString i:dataList[1].split(' '))
         a.push_back(i.toInt());
     for(QString i:dataList[2].split(' '))
         b.push_back(i.toInt());
-
+    int gen = dataList[3].split(' ')[0].toInt();
+    double rate = dataList[3].split(' ')[1].toDouble();
 //    QVector<int> a = {1,2,3,4,5,6,7,8,9};
 //    QVector<int> b = {10,9,8,7,6,5,4,3,2};
-    SolverGA *solver = new SolverGA(num, limit, a, b, 20, 0.4);
+    SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate);
 
     QVector<int> res = solver->getAns();
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
