@@ -86,18 +86,6 @@ SolverGA::SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations
     this->costs = c;
     this->numOfGenerations = generations;
     this->mutationRate = mutationRate;
-    population.resize(numOfInd);
-
-    //initiate population
-
-    //*todo: better random
-    qsrand(QDateTime::currentMSecsSinceEpoch());
-    for(int i=0;i<this->numOfInd;i++)
-        population[i] = new Individual(this);
-
-
-    solve();
-
 }
 void SolverGA::sortPopulation(){
     std::sort(population.begin(), population.end(),
@@ -115,11 +103,11 @@ void SolverGA::crossover() {
         if (chance > crossoverRate) continue;
 
         id1 = id1 % (numOfInd + 1) / 2;
-//        id2 = (id1 + 1) % (numOfInd + 1) / 2;
-        if (id1 == 0) id1++;
+        id2 = (id1 + 1) % (numOfInd + 1) / 2;
+        //if (id1 == 0) id1++;
 
         //first variant
-        //population[id1]->crossover( population[0], sons );
+        //population[id1]->crossover( population[id2], sons );
 
         //second variant
         sons.push_back( population[0]->crossover( population[id1] ) );
@@ -151,12 +139,25 @@ void SolverGA::mutation() {
 
 void SolverGA::solve() {
 
+
+    makePopulation();
+    res_fitness = INT_MIN;
+    res_generation = -1;
+    fitnessScoreHistory.clear();
+
     QVector<int> fitnessScore;
 
     for (int generation = 0; generation < this->numOfGenerations; generation++) {
         sortPopulation();
 
         //qDebug() << population << "\n\n";
+
+        if (population[0]->fitnessScore() > res_fitness) {
+            res_fitness = population[0]->fitnessScore();
+            res = population[0];
+
+            res_generation = generation;
+        }
 
         fitnessScore.clear();
 
@@ -177,11 +178,22 @@ void SolverGA::solve() {
 }
 
 QVector<int> SolverGA::getAns() {
-    sortPopulation();
     qDebug() << population[0]->fitnessScore() << " ! " << population[0]->weight();
-    return population[0]->pocket;
+    return res->pocket;
 }
 
 QVector< QVector<int> > SolverGA::getFitnessScoreHistory() {
     return fitnessScoreHistory;
+}
+
+void SolverGA::makePopulation() {
+    population.resize(numOfInd);
+
+    qsrand(QDateTime::currentMSecsSinceEpoch());
+    for(int i=0;i<this->numOfInd;i++)
+        population[i] = new Individual(this);
+}
+
+int SolverGA::getAnsGeneration() {
+    return  res_generation;
 }
