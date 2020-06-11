@@ -8,7 +8,10 @@ public:
     SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate,int numOfInd);
     void sortPopulation();
     QVector<int> getAns();
+    int getAnsGeneration();
     QVector< QVector<int> > getFitnessScoreHistory();
+    void solve();
+
 
 protected:
     class Individual;
@@ -25,9 +28,17 @@ protected:
 
     QVector< QVector<int> > fitnessScoreHistory;
 
-    void solve();
+    Individual * res;
+
+
     void crossover();
     void mutation();
+    void makePopulation();
+
+
+private:
+    int res_fitness;
+    int res_generation;
 
 
 

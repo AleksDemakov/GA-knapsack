@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QChart>
+
+class SolverGA;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,5 +20,8 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    double getMean( QVector<int> const &v );
+
+    QtCharts::QChart * createChart( SolverGA * solver );
 };
 #endif // MAINWINDOW_H
