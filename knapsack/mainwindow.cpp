@@ -2,7 +2,7 @@
 #include "solverga.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
-
+#include <QFileDialog>
 #include <QChartView>
 #include <QSplineSeries>
 #include <QValueAxis>
@@ -15,14 +15,29 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     setCentralWidget( ui->gridLayoutWidget );
+    const QString fileName = QFileDialog::getOpenFileName(this);
+    QFile file(fileName);
+    file.open(QFile::ReadOnly);
+    QString data = file.readAll();
+    QList<QString> dataList = data.split('\n');
+    int limit = dataList[0].split(' ')[0].toInt();
+    int num = dataList[0].split(' ')[1].toInt();
 
-    QVector<int> a = {1,2,3,4,5,6,7,8,9};
-    //QVector<int> b = {10,9,8,7,6,5,4,3,2};
-    QVector<int> b = {2,3,4,5,6,7,8,9,10};
-    SolverGA *solver = new SolverGA(9, 20, a, b, 5, 0.7);
-
+    QVector<int> a, b;
+    for(QString i:dataList[1].split(' '))
+        a.push_back(i.toInt());
+    for(QString i:dataList[2].split(' '))
+        b.push_back(i.toInt());
+    int gen = dataList[3].split(' ')[0].toInt();
+    double rate = dataList[3].split(' ')[1].toDouble();
+    int numOfInd = dataList[3].split(' ')[2].toInt();
+//    QVector<int> a = {1,2,3,4,5,6,7,8,9};
+//    QVector<int> b = {10,9,8,7,6,5,4,3,2};
+    SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate, numOfInd);
     solver->solve();
+
 
     QVector<int> res = solver->getAns();
 
@@ -118,6 +133,7 @@ QChart * MainWindow::createChart(SolverGA *solver) {
     }
 
 
+
     qDebug() << min_value << " " << max_value;
 
     QPen pen(QRgb(0xfdb157));
@@ -149,6 +165,7 @@ QChart * MainWindow::createChart(SolverGA *solver) {
     axisY->applyNiceNumbers();
 
 
+
     chart->addSeries( series_max );
     chart->addSeries( series_mean );
 
@@ -157,6 +174,7 @@ QChart * MainWindow::createChart(SolverGA *solver) {
 
     chart->addAxis(axisX, Qt::AlignBottom);
     chart->addAxis(axisY, Qt::AlignLeft);
+
 
     axisY->setLabelsEditable();
 
