@@ -2,7 +2,7 @@
 #include "solverga.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
-
+#include <QFileDialog>
 #include <QChartView>
 #include <QSplineSeries>
 #include <QValueAxis>
@@ -15,9 +15,23 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    QVector<int> a = {1,2,3,4,5,6,7,8,9};
-    QVector<int> b = {10,9,8,7,6,5,4,3,2};
-    SolverGA *solver = new SolverGA(9, 20, a, b, 20, 0.4);
+
+    const QString fileName = QFileDialog::getOpenFileName(this);
+    QFile file(fileName);
+    file.open(QFile::ReadOnly);
+    QString data = file.readAll();
+    QList<QString> dataList = data.split('\n');
+    int limit = dataList[0].split(' ')[0].toInt();
+    int num = dataList[0].split(' ')[1].toInt();
+    QVector<int> a, b;
+    for(QString i:dataList[1].split(' '))
+        a.push_back(i.toInt());
+    for(QString i:dataList[2].split(' '))
+        b.push_back(i.toInt());
+
+//    QVector<int> a = {1,2,3,4,5,6,7,8,9};
+//    QVector<int> b = {10,9,8,7,6,5,4,3,2};
+    SolverGA *solver = new SolverGA(num, limit, a, b, 20, 0.4);
 
     QVector<int> res = solver->getAns();
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
@@ -37,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
 //    series->append(0, 10);
-//    //series->append(1, 20);
+//    series->append(1, 20);
 //    series->append( QPointF( 30, 30 ) );
 //    series->append(60, 20);
 
@@ -71,8 +85,6 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget( chartView );
 
     //chartView->setFixedSize(500, 500);
-
-
 
     qDebug() << res;
 

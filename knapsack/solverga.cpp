@@ -19,7 +19,8 @@ class SolverGA::Individual{
                 pocket[i] = qrand() % 2;
             }
         }
-        int weight(){
+        int weight()
+        {
             int sum_w=0;
             for(int i=0;i<this->n;i++) {
                 if(pocket[i] == 1)
@@ -39,7 +40,8 @@ class SolverGA::Individual{
 
             //return  sum_c - qMax(0, this->weight() - solver->limit );
         }
-        Individual *crossover(Individual *other){
+        Individual *crossover(Individual *other)
+        {
             Individual *son = new Individual(solver);
             for(int i=0;i<this->n;i++){
                 if(this->pocket[i] == other->pocket[i])
@@ -50,7 +52,8 @@ class SolverGA::Individual{
             }
             return son;
         }
-        void crossover(Individual * p2, QVector<Individual *> & sons) {
+        void crossover(Individual * p2, QVector<Individual *> & sons)
+        {
 
             Individual * son1 = new Individual( solver );
             Individual * son2 = new Individual( solver );
@@ -68,11 +71,13 @@ class SolverGA::Individual{
             sons.push_back(son2);
 
         }
-        void mutate() {
+        void mutate()
+        {
             int pos = QRandomGenerator::global()->bounded( this->n );
             pocket[ pos ] ^= 1;
         }
-        bool operator < (Individual *other){
+        bool operator < (Individual *other)
+        {
             return this->fitnessScore() < other->fitnessScore();
         }
 };
@@ -99,12 +104,14 @@ SolverGA::SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations
     solve();
 
 }
-void SolverGA::sortPopulation(){
+void SolverGA::sortPopulation()
+{
     std::sort(population.begin(), population.end(),
               [](Individual *a, Individual *b){return a->fitnessScore() > b->fitnessScore();});
 }
 
-void SolverGA::crossover() {
+void SolverGA::crossover()
+{
     int id1 = 1, id2;
     double crossoverRate = 0.8;
     double chance;
@@ -138,7 +145,8 @@ void SolverGA::crossover() {
 
 }
 
-void SolverGA::mutation() {
+void SolverGA::mutation()
+{
     double chance;
 
     for (Individual * ind : population) {
@@ -149,7 +157,8 @@ void SolverGA::mutation() {
 
 }
 
-void SolverGA::solve() {
+void SolverGA::solve()
+{
 
     QVector<int> fitnessScore;
 
@@ -176,12 +185,14 @@ void SolverGA::solve() {
 
 }
 
-QVector<int> SolverGA::getAns() {
+QVector<int> SolverGA::getAns()
+{
     sortPopulation();
     qDebug() << population[0]->fitnessScore() << " ! " << population[0]->weight();
     return population[0]->pocket;
 }
 
-QVector< QVector<int> > SolverGA::getFitnessScoreHistory() {
+QVector< QVector<int> > SolverGA::getFitnessScoreHistory()
+{
     return fitnessScoreHistory;
 }
