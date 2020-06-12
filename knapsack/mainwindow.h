@@ -22,6 +22,12 @@ private:
     Ui::MainWindow *ui;
     double getMean( QVector<int> const &v );
 
-    QtCharts::QChart * createChart( SolverGA * solver );
+    QtCharts::QChart * createGenerationsChart( int num, int limit, QVector<int> &a, QVector<int> &b, int gen, double rate, int numOfInd );
+
+    QtCharts::QChart * createMutationRateChart( int num, int limit, QVector<int> &a, QVector<int> &b, int gen, int numOfInd );
+
+    QtCharts::QChart * createNumOfIndChart( int num, int limit, QVector<int> &a, QVector<int> &b, int gen, double rate );
+
+    double getFastAnswer( SolverGA * solver, int iterations );
 };
 #endif // MAINWINDOW_H

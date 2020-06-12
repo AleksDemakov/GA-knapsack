@@ -6,11 +6,14 @@ class SolverGA
 {
 public:
     SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate,int numOfInd);
+    ~SolverGA();
     void sortPopulation();
     QVector<int> getAns();
     int getAnsGeneration();
-    QVector< QVector<int> > getFitnessScoreHistory();
+    QVector< QVector<int> > const & getFitnessScoreHistory();
     void solve();
+    void setMutationRate(double rate);
+    void setNumOfInd(int numOfInd);
 
 
 protected:
@@ -39,6 +42,11 @@ protected:
 private:
     int res_fitness;
     int res_generation;
+    int res_generation_ans;
+
+    QVector<int> fitnessScore;
+
+    bool check();
 
 
 

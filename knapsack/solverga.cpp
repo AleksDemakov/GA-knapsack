@@ -80,6 +80,7 @@ class SolverGA::Individual{
         {
             return this->fitnessScore() < other->fitnessScore();
         }
+
 };
 SolverGA::SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations, double mutationRate, int numOfInd)
 {
@@ -91,6 +92,10 @@ SolverGA::SolverGA(int n, int v, QVector<int> w, QVector<int> c, int generations
     this->costs = c;
     this->numOfGenerations = generations;
     this->mutationRate = mutationRate;
+
+}
+SolverGA::~SolverGA() {
+
 }
 void SolverGA::sortPopulation()
 {
@@ -121,8 +126,6 @@ void SolverGA::crossover()
 
         id1++;
 
-
-
     }
 
     id1 = 0;
@@ -143,6 +146,8 @@ void SolverGA::mutation()
         if (chance <= this->mutationRate) ind->mutate();
     }
 
+
+
 }
 
 void SolverGA::solve()
@@ -150,22 +155,28 @@ void SolverGA::solve()
 
 
     makePopulation();
-    res_fitness = INT_MIN;
-    res_generation = -1;
-    fitnessScoreHistory.clear();
 
-    QVector<int> fitnessScore;
+    res_fitness = INT_MIN;
+    res_generation = numOfGenerations;
+    res_generation_ans = 0;
+
+    fitnessScoreHistory.clear();
 
     for (int generation = 0; generation < this->numOfGenerations; generation++) {
         sortPopulation();
 
         //qDebug() << population << "\n\n";
 
-        if (population[0]->fitnessScore() > res_fitness) {
+        if (population[0]->fitnessScore() >= res_fitness) {
             res_fitness = population[0]->fitnessScore();
             res = population[0];
 
-            res_generation = generation;
+            if ( check() && population[0]->fitnessScore() > res_generation_ans ) {
+                res_generation = generation - numOfGenerations * 5 / 100;
+                res_generation_ans = population[0]->fitnessScore();
+
+                //qDebug() << res_generation << " !!!";
+            }
         }
 
         fitnessScore.clear();
@@ -188,11 +199,11 @@ void SolverGA::solve()
 
 
 QVector<int> SolverGA::getAns() {
-    qDebug() << population[0]->fitnessScore() << " ! " << population[0]->weight();
+    //qDebug() << population[0]->fitnessScore() << " ! " << population[0]->weight();
     return res->pocket;
 }
 
-QVector< QVector<int> > SolverGA::getFitnessScoreHistory()
+QVector< QVector<int> > const & SolverGA::getFitnessScoreHistory()
 {
     return fitnessScoreHistory;
 }
@@ -207,4 +218,29 @@ void SolverGA::makePopulation() {
 
 int SolverGA::getAnsGeneration() {
     return  res_generation;
+}
+
+void SolverGA::setMutationRate(double rate) {
+    this->mutationRate = rate;
+}
+
+bool SolverGA::check() {
+
+    int cnt = qMax( 10, numOfGenerations * 5 / 100 );
+
+    //qDebug() << cnt << " cnt";
+
+    if ( fitnessScoreHistory.size() - cnt < 0 ) return false;
+
+
+    for (int i = fitnessScoreHistory.size() - 1; i >= fitnessScoreHistory.size() - cnt; i--) {
+        if (fitnessScoreHistory[i][0] != fitnessScoreHistory.back()[0]) return false;
+    }
+
+    return  true;
+
+}
+
+void SolverGA::setNumOfInd(int numOfInd) {
+    this->numOfInd = numOfInd;
 }

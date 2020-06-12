@@ -15,10 +15,10 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     setCentralWidget( ui->gridLayoutWidget );
-    const QString fileName = QFileDialog::getOpenFileName(this);
-    QFile file(fileName);
+
+    //const QString fileName = QFileDialog::getOpenFileName(this);
+    QFile file("in.txt");
     file.open(QFile::ReadOnly);
     QString data = file.readAll();
     QList<QString> dataList = data.split('\n');
@@ -26,69 +26,39 @@ MainWindow::MainWindow(QWidget *parent)
     int num = dataList[0].split(' ')[1].toInt();
 
     QVector<int> a, b;
+
     for(QString i:dataList[1].split(' '))
         a.push_back(i.toInt());
+
     for(QString i:dataList[2].split(' '))
         b.push_back(i.toInt());
+
     int gen = dataList[3].split(' ')[0].toInt();
     double rate = dataList[3].split(' ')[1].toDouble();
     int numOfInd = dataList[3].split(' ')[2].toInt();
+
 //    QVector<int> a = {1,2,3,4,5,6,7,8,9};
 //    QVector<int> b = {10,9,8,7,6,5,4,3,2};
-    SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate, numOfInd);
-    solver->solve();
+    //SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate, numOfInd);
 
 
-    QVector<int> res = solver->getAns();
+    QChartView * chartView;
 
-    QChartView * chartView = new QChartView(this);
-    chartView->setChart( createChart( solver ) );
+    chartView = new QChartView( createGenerationsChart( num, limit, a, b, gen, rate, numOfInd ) );
     chartView->setRenderHint(QPainter::Antialiasing);
+    ui->gridLayout->addWidget( chartView, 0, 0, 1, 2 );
 
-
-
-    ui->gridLayout->addWidget( chartView, 0, 0 );
-
-
-    solver->solve();
-
-    res = solver->getAns();
-
-    chartView = new QChartView(this);
-    chartView->setChart( createChart( solver ) );
+    chartView = new QChartView( createMutationRateChart( num, limit, a, b, gen, numOfInd ) );
     chartView->setRenderHint(QPainter::Antialiasing);
-
-
-    ui->gridLayout->addWidget( chartView, 0, 1 );
-
-    solver->solve();
-
-    res = solver->getAns();
-
-    chartView = new QChartView(this);
-    chartView->setChart( createChart( solver ) );
-    chartView->setRenderHint(QPainter::Antialiasing);
-
-
     ui->gridLayout->addWidget( chartView, 1, 0 );
 
-    solver->solve();
-
-    res = solver->getAns();
-
-    chartView = new QChartView(this);
-    chartView->setChart( createChart( solver ) );
+    chartView = new QChartView( createNumOfIndChart( num, limit, a, b, gen, rate ) );
     chartView->setRenderHint(QPainter::Antialiasing);
-
-
     ui->gridLayout->addWidget( chartView, 1, 1 );
 
 
-    //chartView->setFixedSize(500, 500);
 
 
-
-    qDebug() << res;
 
     //exit(0);
 
@@ -109,8 +79,15 @@ double MainWindow::getMean(QVector<int> const &v) {
     return 1.0 * sum / v.size();
 }
 
-QChart * MainWindow::createChart(SolverGA *solver) {
+QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a, QVector<int> &b, int gen, double rate, int numOfInd ) {
+
+    SolverGA * solver = new SolverGA(num, limit, a, b, gen, rate, numOfInd);
+
+    solver->solve();
+
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
+
+    delete solver;
 
     QLineSeries* series_max = new QLineSeries();
     series_max->setName("Max fitness");
@@ -141,11 +118,11 @@ QChart * MainWindow::createChart(SolverGA *solver) {
     series_max->setPen(pen);
 
     QChart * chart = new QChart();
-    QFont sansFont("Helvetica [Cronyx]", 12);
+    QFont sansFont("Helvetica [Cronyx]", 10);
 
     chart->setTitle("Fitness chart");
 
-    chart->setTitleFont( QFont("Helvetica [Cronyx]", 12, QFont::Bold) );
+    chart->setTitleFont( QFont("Helvetica [Cronyx]", 11, QFont::Bold) );
 
     QValueAxis * axisX = new QValueAxis();
     QValueAxis * axisY = new QValueAxis();
@@ -158,7 +135,6 @@ QChart * MainWindow::createChart(SolverGA *solver) {
     axisY->setLabelFormat("%d");
 
     //axisX->setTickCount(10);
-    axisY->setTickCount( 20 );
     //axisY->setTickAnchor(10);
 
     axisX->applyNiceNumbers();
@@ -186,4 +162,122 @@ QChart * MainWindow::createChart(SolverGA *solver) {
     return chart;
 
 }
+
+QChart * MainWindow::createMutationRateChart( int num, int limit, QVector<int> &a, QVector<int> &b, int gen, int numOfInd )
+{
+    QLineSeries * series = new QLineSeries();
+    SolverGA * solver = new SolverGA(num, limit, a, b, gen, 0.7, numOfInd);
+
+
+
+    for (double rate = 0.0; rate <= 1.0; rate += 0.1) {
+
+        solver->setMutationRate(rate);
+
+        series->append( rate, getFastAnswer(solver, 100) );
+    }
+
+    delete solver;
+
+    series->setName("Mean generation (100 experiments)");
+    series->setPen( QColor("red") );
+
+
+    QChart * chart = new QChart();
+
+    chart->setTitleFont( QFont("Helvetica [Cronyx]", 10, QFont::Bold) );
+    chart->setTitle("Generation that stops algorithm");
+
+    QValueAxis * axisX = new QValueAxis();
+    QValueAxis * axisY = new QValueAxis();
+
+    axisX->setTitleText("Mutation rate");
+    axisY->setTitleText("Generation");
+
+    axisX->applyNiceNumbers();
+    axisY->applyNiceNumbers();
+
+    chart->addSeries( series );
+
+    chart->legend()->setFont( QFont("Helvetica [Cronyx]", 9) );
+    chart->legend()->setMarkerShape( QLegend::MarkerShapeFromSeries );
+
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    //chart->createDefaultAxes();
+
+    return  chart;
+}
+
+double MainWindow::getFastAnswer(SolverGA *solver, int iterations) {
+
+    QVector<int> answers;
+
+    for (int i = 0; i < iterations; i++) {
+
+        solver->solve();
+
+        answers.push_back( solver->getAnsGeneration() );
+
+        //qDebug() << solver->getAnsGeneration();
+
+    }
+
+    return  getMean( answers );
+
+}
+
+
+QChart * MainWindow::createNumOfIndChart( int num, int limit, QVector<int> &a, QVector<int> &b, int gen, double rate ) {
+    QLineSeries * series = new QLineSeries();
+    SolverGA * solver = new SolverGA(num, limit, a, b, gen, rate, 1);
+
+    for (int numOfInd = 8; numOfInd <= 22; numOfInd += 2) {
+
+        solver->setNumOfInd( numOfInd );
+
+        series->append( numOfInd, getFastAnswer(solver, 100) );
+    }
+
+    delete solver;
+
+    series->setName("Mean generation (100 experiments)");
+    series->setPen( QColor("red") );
+
+    QChart * chart = new QChart();
+
+    chart->setTitleFont( QFont("Helvetica [Cronyx]", 10, QFont::Bold) );
+    chart->setTitle("Generation that stops algorithm");
+
+    QValueAxis * axisX = new QValueAxis();
+    QValueAxis * axisY = new QValueAxis();
+
+    axisX->setTitleText("Population size");
+    axisY->setTitleText("Generation");
+
+    axisX->applyNiceNumbers();
+    axisY->applyNiceNumbers();
+
+    axisX->setLabelFormat("%d");
+
+    chart->addSeries( series );
+
+    chart->legend()->setFont( QFont("Helvetica [Cronyx]", 9) );
+    chart->legend()->setMarkerShape( QLegend::MarkerShapeFromSeries );
+
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    //chart->createDefaultAxes();
+
+    return  chart;
+}
+
+
 
