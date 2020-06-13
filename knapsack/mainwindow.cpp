@@ -87,6 +87,8 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
 
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
 
+    qDebug() << getFastAnswer(solver, 1) << " gfa";
+
     delete solver;
 
     QLineSeries* series_max = new QLineSeries();
@@ -113,9 +115,10 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
 
     qDebug() << min_value << " " << max_value;
 
-    QPen pen(QRgb(0xfdb157));
+    QPen pen( QColor("#4a4a4a") );
     pen.setWidth(3);
     series_max->setPen(pen);
+    series_mean->setPen( QPen( QColor("#a3a3a3"), 2 ) );
 
     QChart * chart = new QChart();
     QFont sansFont("Helvetica [Cronyx]", 10);
@@ -180,7 +183,7 @@ QChart * MainWindow::createMutationRateChart( int num, int limit, QVector<int> &
     delete solver;
 
     series->setName("Mean generation (100 experiments)");
-    series->setPen( QColor("red") );
+    series->setPen( QPen( QColor("#a3a3a3"), 2 ) );
 
 
     QChart * chart = new QChart();
@@ -241,12 +244,13 @@ QChart * MainWindow::createNumOfIndChart( int num, int limit, QVector<int> &a, Q
         solver->setNumOfInd( numOfInd );
 
         series->append( numOfInd, getFastAnswer(solver, 100) );
+
     }
 
     delete solver;
 
     series->setName("Mean generation (100 experiments)");
-    series->setPen( QColor("red") );
+    series->setPen( QPen( QColor("#a3a3a3"), 2 ) );
 
     QChart * chart = new QChart();
 

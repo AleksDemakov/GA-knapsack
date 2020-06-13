@@ -158,7 +158,7 @@ void SolverGA::solve()
 
     res_fitness = INT_MIN;
     res_generation = numOfGenerations;
-    res_generation_ans = 0;
+    res_generation_ans = INT_MIN;
 
     fitnessScoreHistory.clear();
 
@@ -172,7 +172,7 @@ void SolverGA::solve()
             res = population[0];
 
             if ( check() && population[0]->fitnessScore() > res_generation_ans ) {
-                res_generation = generation - numOfGenerations * 5 / 100;
+                res_generation = generation - qMax( 10, numOfGenerations * 5 / 100 );
                 res_generation_ans = population[0]->fitnessScore();
 
                 //qDebug() << res_generation << " !!!";
@@ -228,7 +228,7 @@ bool SolverGA::check() {
 
     int cnt = qMax( 10, numOfGenerations * 5 / 100 );
 
-    //qDebug() << cnt << " cnt";
+
 
     if ( fitnessScoreHistory.size() - cnt < 0 ) return false;
 
@@ -236,6 +236,8 @@ bool SolverGA::check() {
     for (int i = fitnessScoreHistory.size() - 1; i >= fitnessScoreHistory.size() - cnt; i--) {
         if (fitnessScoreHistory[i][0] != fitnessScoreHistory.back()[0]) return false;
     }
+
+    //qDebug() << cnt << " cnt";
 
     return  true;
 
