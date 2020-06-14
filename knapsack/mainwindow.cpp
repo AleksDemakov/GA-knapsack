@@ -17,8 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setCentralWidget( ui->gridLayoutWidget );
 
-    //const QString fileName = QFileDialog::getOpenFileName(this);
-    QFile file("in.txt");
+    const QString fileName = QFileDialog::getOpenFileName(this, "Select file with parameters");
+    QFile file(fileName);
     file.open(QFile::ReadOnly);
     QString data = file.readAll();
     QList<QString> dataList = data.split('\n');
@@ -37,10 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     double rate = dataList[3].split(' ')[1].toDouble();
     int numOfInd = dataList[3].split(' ')[2].toInt();
 
-//    QVector<int> a = {1,2,3,4,5,6,7,8,9};
-//    QVector<int> b = {10,9,8,7,6,5,4,3,2};
-    //SolverGA *solver = new SolverGA(num, limit, a, b, gen, rate, numOfInd);
-
 
     QChartView * chartView;
 
@@ -48,20 +44,13 @@ MainWindow::MainWindow(QWidget *parent)
     chartView->setRenderHint(QPainter::Antialiasing);
     ui->gridLayout->addWidget( chartView, 0, 0, 1, 2 );
 
-    chartView = new QChartView( createMutationRateChart( num, limit, a, b, gen, numOfInd ) );
-    chartView->setRenderHint(QPainter::Antialiasing);
-    ui->gridLayout->addWidget( chartView, 1, 0 );
+//    chartView = new QChartView( createMutationRateChart( num, limit, a, b, gen, numOfInd ) );
+//    chartView->setRenderHint(QPainter::Antialiasing);
+//    ui->gridLayout->addWidget( chartView, 1, 0 );
 
-    chartView = new QChartView( createNumOfIndChart( num, limit, a, b, gen, rate ) );
-    chartView->setRenderHint(QPainter::Antialiasing);
-    ui->gridLayout->addWidget( chartView, 1, 1 );
-
-
-
-
-
-    //exit(0);
-
+//    chartView = new QChartView( createNumOfIndChart( num, limit, a, b, gen, rate ) );
+//    chartView->setRenderHint(QPainter::Antialiasing);
+//    ui->gridLayout->addWidget( chartView, 1, 1 );
 
 }
 
@@ -87,7 +76,8 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
 
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
 
-    qDebug() << getFastAnswer(solver, 1) << " gfa";
+    //qDebug() << getFastAnswer(solver, 1) << " gfa";
+    QVector<int> res = solver->getAns();
 
     delete solver;
 
@@ -107,23 +97,36 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
 
         min_value = qMin(min_value, getMean( fitness[i] ) );
         max_value = qMax(max_value, fitness[i][0]);
-
-        qDebug() << fitness[i][0];
     }
-
-
 
     qDebug() << min_value << " " << max_value;
 
-    QPen pen( QColor("#4a4a4a") );
-    pen.setWidth(3);
-    series_max->setPen(pen);
+    series_max->setPen( QPen( QColor("#4a4a4a"), 3 ) );
     series_mean->setPen( QPen( QColor("#a3a3a3"), 2 ) );
 
     QChart * chart = new QChart();
     QFont sansFont("Helvetica [Cronyx]", 10);
 
-    chart->setTitle("Fitness chart");
+    std::string stdTitle = "Fitness chart<br>Taken: { ";
+    for (int i = 0; i < res.size(); i++) {
+        if (res[i]) {
+//            stdTitle += "( ";
+//            stdTitle += std::to_string( a[i] );
+//            stdTitle += " , ";
+//            stdTitle += std::to_string( b[i] );
+//            stdTitle += " ) , ";
+            stdTitle += std::to_string( i + 1 );
+            stdTitle += " , ";
+        }
+    }
+
+    stdTitle.pop_back();
+    stdTitle.pop_back();
+    stdTitle += " }";
+
+    chart->setTitle( QString::fromStdString(stdTitle) );
+
+
 
     chart->setTitleFont( QFont("Helvetica [Cronyx]", 11, QFont::Bold) );
 
@@ -137,13 +140,9 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
     axisX->setLabelFormat("%d");
     axisY->setLabelFormat("%d");
 
-    //axisX->setTickCount(10);
-    //axisY->setTickAnchor(10);
-
     axisX->applyNiceNumbers();
-    axisY->applyNiceNumbers();
-
-
+    axisY->setTickCount(15);
+    axisY->applyNiceNumbers();    
 
     chart->addSeries( series_max );
     chart->addSeries( series_mean );
@@ -211,8 +210,6 @@ QChart * MainWindow::createMutationRateChart( int num, int limit, QVector<int> &
     series->attachAxis(axisX);
     series->attachAxis(axisY);
 
-    //chart->createDefaultAxes();
-
     return  chart;
 }
 
@@ -221,13 +218,9 @@ double MainWindow::getFastAnswer(SolverGA *solver, int iterations) {
     QVector<int> answers;
 
     for (int i = 0; i < iterations; i++) {
-
         solver->solve();
 
         answers.push_back( solver->getAnsGeneration() );
-
-        //qDebug() << solver->getAnsGeneration();
-
     }
 
     return  getMean( answers );
@@ -277,8 +270,6 @@ QChart * MainWindow::createNumOfIndChart( int num, int limit, QVector<int> &a, Q
     chart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisX);
     series->attachAxis(axisY);
-
-    //chart->createDefaultAxes();
 
     return  chart;
 }

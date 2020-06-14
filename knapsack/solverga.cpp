@@ -15,40 +15,47 @@ class SolverGA::Individual{
             this->solver = solver;
             this->n = solver->n;
             pocket.resize(n);
-            for(int i=0;i<n;i++){
+            for(int i = 0; i < n; i++){
                 pocket[i] = qrand() % 2;
             }
         }
+        Individual(Individual * ind)
+        {
+            this->solver = ind->solver;
+            this->n = solver->n;
+            this->pocket = ind->pocket;
+        }
         int weight()
         {
-            int sum_w=0;
-            for(int i=0;i<this->n;i++) {
+            int sum_w = 0;
+
+            for(int i = 0; i < this->n; i++) {
                 if(pocket[i] == 1)
                     sum_w += solver->weights[i];
             }
+
             return sum_w;
         }
         int fitnessScore()
         {
             int sum_c = 0;
-            for(int i=0;i<this->n;i++) {
+
+            for(int i = 0; i < this->n; i++) {
                 if(pocket[i] == 1)
                     sum_c += solver->costs[i];
             }
+
             if (this->weight() > solver->limit) return solver->limit - this->weight();
             return sum_c;
-
-            //return  sum_c - qMax(0, this->weight() - solver->limit );
         }
         Individual *crossover(Individual *other)
         {
             Individual *son = new Individual(solver);
-            for(int i=0;i<this->n;i++){
+            for(int i = 0; i < this->n; i++){
                 if(this->pocket[i] == other->pocket[i])
                     son->pocket[i] = this->pocket[i];
                 else
                     son->pocket[i] = qrand()%2;
-                    //son->pocket[i] = QRandomGenerator::global()->bounded(2);
             }
             return son;
         }
@@ -105,7 +112,7 @@ void SolverGA::sortPopulation()
 
 void SolverGA::crossover()
 {
-    int id1 = 1, id2;
+    int id1 = 1, id2 = 1;
     double crossoverRate = 0.8;
     double chance;
     QVector< Individual * > sons;
@@ -116,12 +123,7 @@ void SolverGA::crossover()
 
         id1 = id1 % (numOfInd + 1) / 2;
         id2 = (id1 + 1) % (numOfInd + 1) / 2;
-        //if (id1 == 0) id1++;
 
-        //first variant
-        //population[id1]->crossover( population[id2], sons );
-
-        //second variant
         sons.push_back( population[0]->crossover( population[id1] ) );
 
         id1++;
@@ -159,23 +161,25 @@ void SolverGA::solve()
     res_fitness = INT_MIN;
     res_generation = numOfGenerations;
     res_generation_ans = INT_MIN;
+    res = {};
 
     fitnessScoreHistory.clear();
 
     for (int generation = 0; generation < this->numOfGenerations; generation++) {
         sortPopulation();
 
-        //qDebug() << population << "\n\n";
-
         if (population[0]->fitnessScore() >= res_fitness) {
             res_fitness = population[0]->fitnessScore();
-            res = population[0];
+
+            if (res != nullptr) delete res;
+
+            res = new Individual( population[0] );
+
+            qDebug() << res->fitnessScore() << " fs res";
 
             if ( check() && population[0]->fitnessScore() > res_generation_ans ) {
                 res_generation = generation - qMax( 10, numOfGenerations * 5 / 100 );
                 res_generation_ans = population[0]->fitnessScore();
-
-                //qDebug() << res_generation << " !!!";
             }
         }
 
@@ -193,13 +197,11 @@ void SolverGA::solve()
 
     }
 
-    //qDebug() << fitnessScoreHistory << "\n\n";
-
 }
 
 
 QVector<int> SolverGA::getAns() {
-    //qDebug() << population[0]->fitnessScore() << " ! " << population[0]->weight();
+    qDebug() << res->fitnessScore() << " fitness";
     return res->pocket;
 }
 
@@ -212,7 +214,7 @@ void SolverGA::makePopulation() {
     population.resize(numOfInd);
 
     qsrand(QDateTime::currentMSecsSinceEpoch());
-    for(int i=0;i<this->numOfInd;i++)
+    for(int i = 0; i < this->numOfInd; i++)
         population[i] = new Individual(this);
 }
 
@@ -228,16 +230,11 @@ bool SolverGA::check() {
 
     int cnt = qMax( 10, numOfGenerations * 5 / 100 );
 
-
-
     if ( fitnessScoreHistory.size() - cnt < 0 ) return false;
-
 
     for (int i = fitnessScoreHistory.size() - 1; i >= fitnessScoreHistory.size() - cnt; i--) {
         if (fitnessScoreHistory[i][0] != fitnessScoreHistory.back()[0]) return false;
     }
-
-    //qDebug() << cnt << " cnt";
 
     return  true;
 

@@ -33,7 +33,6 @@ protected:
 
     Individual * res;
 
-
     void crossover();
     void mutation();
     void makePopulation();
