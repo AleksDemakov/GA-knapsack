@@ -17,8 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setCentralWidget( ui->gridLayoutWidget );
 
-    //const QString fileName = QFileDialog::getOpenFileName(this);
-    QFile file("in.txt");
+    const QString fileName = QFileDialog::getOpenFileName(this);
+    QFile file(fileName);
     file.open(QFile::ReadOnly);
     QString data = file.readAll();
     QList<QString> dataList = data.split('\n');
@@ -48,11 +48,11 @@ MainWindow::MainWindow(QWidget *parent)
     chartView->setRenderHint(QPainter::Antialiasing);
     ui->gridLayout->addWidget( chartView, 0, 0, 1, 2 );
 
-    chartView = new QChartView( createMutationRateChart( num, limit, a, b, gen, numOfInd ) );
+    //chartView = new QChartView( createMutationRateChart( num, limit, a, b, gen, numOfInd ) );
     chartView->setRenderHint(QPainter::Antialiasing);
     ui->gridLayout->addWidget( chartView, 1, 0 );
 
-    chartView = new QChartView( createNumOfIndChart( num, limit, a, b, gen, rate ) );
+    //chartView = new QChartView( createNumOfIndChart( num, limit, a, b, gen, rate ) );
     chartView->setRenderHint(QPainter::Antialiasing);
     ui->gridLayout->addWidget( chartView, 1, 1 );
 
@@ -86,7 +86,7 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
     solver->solve();
 
     QVector< QVector<int> > fitness = solver->getFitnessScoreHistory();
-
+    QVector<int> res = solver->getAns();
     delete solver;
 
     QLineSeries* series_max = new QLineSeries();
@@ -106,7 +106,7 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
         min_value = qMin(min_value, getMean( fitness[i] ) );
         max_value = qMax(max_value, fitness[i][0]);
 
-        qDebug() << fitness[i][0];
+        //qDebug() << fitness[i][0];
     }
 
 
@@ -115,12 +115,38 @@ QChart * MainWindow::createGenerationsChart( int num, int limit, QVector<int> &a
 
     QPen pen(QRgb(0xfdb157));
     pen.setWidth(3);
-    series_max->setPen(pen);
 
+    series_max->setPen(pen);
+    pen.setStyle(Qt::DotLine);
+    pen.setColor(Qt::green);
+    pen.setWidth(2);
+    series_mean->setPen(pen);
     QChart * chart = new QChart();
     QFont sansFont("Helvetica [Cronyx]", 10);
 
-    chart->setTitle("Fitness chart");
+    int cost=0, wei=0;
+    QString  stdTitle = "Fitness chart<br>Taken: { ";
+       for (int i = 0; i < res.size(); i++) {
+           if (res[i]) {
+   //            stdTitle += "( ";
+   //            stdTitle += std::to_string( a[i] );
+   //            stdTitle += " , ";
+   //            stdTitle += std::to_string( b[i] );
+   //            stdTitle += " ) , ";
+               stdTitle += QString::number( i + 1 );
+               stdTitle += " , ";
+               cost += b[i];
+               wei += a[i];
+           }
+       }
+
+       stdTitle.chop(1);
+       stdTitle.chop(1);
+       stdTitle += " }";
+       stdTitle += "\n cost = ";
+       stdTitle += QString::number(cost) +", weight = "+ QString::number(wei);
+       chart->setTitle( stdTitle );
+
 
     chart->setTitleFont( QFont("Helvetica [Cronyx]", 11, QFont::Bold) );
 
